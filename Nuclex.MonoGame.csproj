@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Nuclex Framework (UserInterface, Input, Support) ported to MonoGame DesktopGL.
+       Original: Nuclex Framework by Markus Ewald (nuclex.org), IBM Common Public License 1.0. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Vexillum.Shims.Nuclex</AssemblyName>
+    <RootNamespace>Nuclex</RootNamespace>
+    <PackageId>Nuclex.MonoGame</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Markus Ewald (Nuclex Framework); MonoGame port by the Vexillum project</Authors>
+    <Description>Nuclex Framework GUI (UserInterface), Input and Support libraries ported from XNA 4.0 to MonoGame DesktopGL.</Description>
+    <PackageLicenseFile>LICENSE-CPL.txt</PackageLicenseFile>
+    <PackageReadmeFile>NUCLEX-PORT-NOTES.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/danroblewis/Nuclex.MonoGame</RepositoryUrl>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- WINDOWS = the XNA desktop platform switch used by the original sources; NO_DIRECTINPUT drops SlimDX code. -->
+    <DefineConstants>$(DefineConstants);TRACE;WINDOWS;NO_DIRECTINPUT</DefineConstants>
+    <WarningLevel>1</WarningLevel>
+    <NoWarn>$(NoWarn);CS0168;CS0219;CS0414;CS0649;CS0108;CS0618;CS1717;CS0162;CS0169;CS0067;CS1591</NoWarn>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UserInterface/Resources/skin.xsd" LogicalName="Nuclex.UserInterface.Resources.skin.xsd" />
+    <EmbeddedResource Include="UserInterface/Resources/Skins/Suave/Suave.skin.xml" LogicalName="Nuclex.UserInterface.Resources.Skins.Suave.SuaveSkin" />
+    <EmbeddedResource Include="UserInterface/Resources/Skins/Suave/SuaveSheet.xnb" LogicalName="Nuclex.UserInterface.Resources.Skins.Suave.SuaveSheet" />
+    <EmbeddedResource Include="UserInterface/Resources/Skins/Suave/DefaultFont.xnb" LogicalName="Nuclex.UserInterface.Resources.Skins.Suave.DefaultFont" />
+    <EmbeddedResource Include="UserInterface/Resources/Skins/Suave/TitleFont.xnb" LogicalName="Nuclex.UserInterface.Resources.Skins.Suave.TitleFont" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LICENSE-CPL.txt" Pack="true" PackagePath="/" />
+    <None Include="NUCLEX-PORT-NOTES.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>
