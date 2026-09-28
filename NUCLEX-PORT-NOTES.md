@@ -64,6 +64,10 @@ New files (not from Nuclex; CPL like the rest):
   `ScrollWheelValue delta / 120` (one notch = 1.0, as before). A cursor
   leaving the client area is reported once as `MouseMoved(-1, -1)`, matching
   the old `WM_MOUSELEAVE` handling that `Vexillum.MouseMove` filters on.
+  MonoGame's desktop mouse reports buttons from the global (whole-screen)
+  state, so a press is reported only while the game is active and the cursor
+  is inside its client area, and a release only for a reported press, as
+  Windows delivered button messages only to the clicked window.
 * `Input/GameWindowLocator.cs` - finds the `GameWindow` for the window handle
   `InputManager` receives (service container first, then MonoGame's internal
   `Game.Instance` by reflection).

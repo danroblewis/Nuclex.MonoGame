@@ -52,6 +52,13 @@ namespace Nuclex.Input {
     /// <summary>Returns the window of the currently running MonoGame game</summary>
     /// <returns>The game window or null if no game is running</returns>
     private static GameWindow windowOfCurrentGame() {
+      Game game = CurrentGame();
+      return (game == null) ? null : game.Window;
+    }
+
+    /// <summary>Returns the currently running MonoGame game</summary>
+    /// <returns>The game or null if no game is running</returns>
+    public static Game CurrentGame() {
       try {
         PropertyInfo instanceProperty = typeof(Game).GetProperty(
           "Instance",
@@ -61,12 +68,7 @@ namespace Nuclex.Input {
           return null;
         }
 
-        Game game = instanceProperty.GetValue(null, null) as Game;
-        if(game == null) {
-          return null;
-        }
-
-        return game.Window;
+        return instanceProperty.GetValue(null, null) as Game;
       }
       catch(Exception) {
         return null;

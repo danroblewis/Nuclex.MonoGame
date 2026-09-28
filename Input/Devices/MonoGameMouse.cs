@@ -9,6 +9,12 @@
 // scroll wheel value divided by 120, i.e. one notch = 1.0). Like the
 // original's WM_MOUSELEAVE handling, a cursor that leaves the client area is
 // reported once as a move to (-1, -1).
+//
+// MonoGame's desktop mouse reports buttons from SDL's global mouse state, so
+// a click anywhere on the screen shows up as pressed. Windows only delivered
+// WM_?BUTTONDOWN to the window under the cursor, so a press is reported only
+// while the game is active and the cursor is inside its client area, and a
+// release only for a press that was reported.
 
 using System;
 
@@ -27,6 +33,8 @@ namespace Nuclex.Input.Devices {
     public MonoGameMouse(GameWindow window) {
       this.window = window;
       this.cursorInside = true;
+      this.stateSource = Mouse.GetState;
+      this.activeSource = isGameActive;
     }
 
     /// <summary>Immediately releases all resources owned by the instance</summary>
@@ -62,7 +70,7 @@ namespace Nuclex.Input.Devices {
     ///   the resulting movement, button and wheel events
     /// </summary>
     private void poll() {
-      MouseState current = Mouse.GetState();
+      MouseState current = this.stateSource();
 
       // The first poll only establishes the reference state; otherwise the
       // accumulated wheel value and the initial cursor position would be
@@ -84,21 +92,23 @@ namespace Nuclex.Input.Devices {
         this.cursorInside = inside;
       }
 
-      // Button state changes (WM_?BUTTONDOWN / WM_?BUTTONUP)
+      // Button state changes (WM_?BUTTONDOWN / WM_?BUTTONUP), only for clicks
+      // that Windows would have delivered to the game window
+      bool accepting = this.activeSource() && isInsideClientArea(current.X, current.Y);
       bufferButtonChange(
-        this.previous.LeftButton, current.LeftButton, MouseButtons.Left
+        this.previous.LeftButton, current.LeftButton, MouseButtons.Left, 0, accepting
       );
       bufferButtonChange(
-        this.previous.MiddleButton, current.MiddleButton, MouseButtons.Middle
+        this.previous.MiddleButton, current.MiddleButton, MouseButtons.Middle, 1, accepting
       );
       bufferButtonChange(
-        this.previous.RightButton, current.RightButton, MouseButtons.Right
+        this.previous.RightButton, current.RightButton, MouseButtons.Right, 2, accepting
       );
       bufferButtonChange(
-        this.previous.XButton1, current.XButton1, MouseButtons.X1
+        this.previous.XButton1, current.XButton1, MouseButtons.X1, 3, accepting
       );
       bufferButtonChange(
-        this.previous.XButton2, current.XButton2, MouseButtons.X2
+        this.previous.XButton2, current.XButton2, MouseButtons.X2, 4, accepting
       );
 
       // Wheel rotation (WM_MOUSEWHEEL reported WHEEL_DELTA / 120 ticks)
@@ -114,18 +124,34 @@ namespace Nuclex.Input.Devices {
     /// <param name="previousState">State the button had in the previous poll</param>
     /// <param name="currentState">State the button has now</param>
     /// <param name="button">Button whose state is being compared</param>
+    /// <param name="index">Slot of the button in the reported-press table</param>
+    /// <param name="accepting">
+    ///   Whether a press belongs to this window (game active, cursor inside)
+    /// </param>
     private void bufferButtonChange(
-      ButtonState previousState, ButtonState currentState, MouseButtons button
+      ButtonState previousState, ButtonState currentState, MouseButtons button,
+      int index, bool accepting
     ) {
       if(previousState == currentState) {
         return;
       }
 
       if(currentState == ButtonState.Pressed) {
-        BufferButtonPress(button);
-      } else {
+        if(accepting) {
+          this.reportedPress[index] = true;
+          BufferButtonPress(button);
+        }
+      } else if(this.reportedPress[index]) {
+        this.reportedPress[index] = false;
         BufferButtonRelease(button);
       }
+    }
+
+    /// <summary>Whether the game that owns the window is the active application</summary>
+    /// <returns>True if the game is active or no game could be found</returns>
+    private static bool isGameActive() {
+      Game game = GameWindowLocator.CurrentGame();
+      return (game == null) || game.IsActive;
     }
 
     /// <summary>Determines whether a position lies inside the window's client area</summary>
@@ -145,6 +171,12 @@ namespace Nuclex.Input.Devices {
 
     /// <summary>Game window the mouse belongs to</summary>
     private GameWindow window;
+    /// <summary>Buttons whose press was reported and whose release is pending</summary>
+    private bool[] reportedPress = new bool[5];
+    /// <summary>Where the mouse state comes from (Mouse.GetState; replaceable by tests)</summary>
+    internal Func<MouseState> stateSource;
+    /// <summary>Whether the game is active (Game.IsActive; replaceable by tests)</summary>
+    internal Func<bool> activeSource;
     /// <summary>Whether the reference state has been established</summary>
     private bool initialized;
     /// <summary>Mouse state when the mouse was last polled</summary>
